@@ -29,8 +29,11 @@ class User(db.Model):
     favourites_characters = relationship("Characters", secondary=favourites_characters, back_populates="fans_characters")
     favourites_planets = relationship("Planets", secondary=favourites_planets, back_populates="fans_planets")
 
-def serialize(self):
-    return {
+
+
+
+    def serialize(self):
+        return {
         "id": self.id,
         "email": self.email,
         # do not serialize the password, its a security breach
@@ -42,7 +45,7 @@ class Planets(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    population: Mapped[Float] = mapped_column(Float)
+    population: Mapped[float] = mapped_column(Float)
 
     fans_planets = relationship("User", secondary=favourites_planets, back_populates="favourites_planets")
 
