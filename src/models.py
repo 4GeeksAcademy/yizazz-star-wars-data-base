@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Integer, Float, ForeignKey, relationship
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Boolean, Integer, Float, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
@@ -13,7 +13,7 @@ favourites_planets = db.Table(
 favourites_characters = db.Table(
     "favourites_characters",
     db.Column("user_id", ForeignKey("user.id"), primary_key=True),
-    db.Column("characters_id", ForeignKey("planets.id"), primary_key=True)
+    db.Column("characters_id", ForeignKey("characters.id"), primary_key=True)
 )
 
 
@@ -21,40 +21,39 @@ class User(db.Model):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
 
-    favourites_characters = relationship("Characters", secondary=favourites_characters, back_populates="fans")
+    favourites_characters = relationship("Characters", secondary=favourites_characters, back_populates="fans_characters")
+    favourites_planets = relationship("Planets", secondary=favourites_planets, back_populates="fans_planets")
+
+def serialize(self):
+    return {
+        "id": self.id,
+        "email": self.email,
+        # do not serialize the password, its a security breach
+    }
 
 
 class Planets(db.Model):
     __tablename__ = "planets"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    Name: Mapped[str] = mapped_column(String(100), nullable=False)
-    Population: Mapped[Float] = mapped_column(float(255))
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    population: Mapped[Float] = mapped_column(Float)
 
+    fans_planets = relationship("User", secondary=favourites_planets, back_populates="favourites_planets")
 
 class Characters(db.Model):
-    __tablenames__ = "characters"
+    __tablename__ = "characters"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    Name: Mapped[str] = mapped_column(String(100), nullable=False)
-    age: Mapped[int] = mapped_column(Integer(100))
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    age: Mapped[int] = mapped_column(Integer)
     gender: Mapped[str] = mapped_column(String(50))
 
-    fans = relationship("User", secondary=favourites_characters, back_populates="favourites_characters")
+    fans_characters = relationship("User", secondary=favourites_characters, back_populates="favourites_characters")
 
 
-
-
-
-
-
-def serialize(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
-        }
